@@ -101,6 +101,22 @@ export function ReadOnlyScoreGrid({
 
             // Current round with bids entered but not complete — show bids + "Enter Tricks" button
             if (isCurrent && bidsEntered && !isComplete) {
+              // Determine who leads: highest bidder, ties broken by bid order (left of dealer first)
+              const dealerIdx = game.playerIds.indexOf(round.dealerPlayerId);
+              let leadPlayerId = game.playerIds[0];
+              let highestBid = -1;
+              let bestBidPos = Infinity;
+              for (let pi = 0; pi < game.playerIds.length; pi++) {
+                const pr = round.playerRounds[pi];
+                const effectiveBid = (pr.boardLevel ?? 0) > 0 ? round.handSize : pr.bid;
+                const bidPos = ((pi - dealerIdx + game.playerIds.length) % game.playerIds.length) || game.playerIds.length;
+                if (effectiveBid > highestBid || (effectiveBid === highestBid && bidPos < bestBidPos)) {
+                  highestBid = effectiveBid;
+                  bestBidPos = bidPos;
+                  leadPlayerId = game.playerIds[pi];
+                }
+              }
+
               return (
                 <tr
                   key={ri}
@@ -114,12 +130,14 @@ export function ReadOnlyScoreGrid({
                     const pr = round.playerRounds.find((p) => p.playerId === pid);
                     if (!pr) return <td key={pid} className="border-r border-slate-200 dark:border-slate-700" />;
                     const isDealer = pid === round.dealerPlayerId;
+                    const isLead = pid === leadPlayerId;
                     const bl = pr.boardLevel ?? 0;
                     const isBoard = bl > 0;
                     return (
                       <td key={pid} className={['py-1 px-1 text-center border-r border-slate-200 dark:border-slate-700', isBoard ? 'bg-amber-50/40 dark:bg-amber-950/10' : ''].join(' ')}>
                         <div className="leading-tight">
                           {isDealer && <span className="text-[8px] text-amber-500 font-bold">D </span>}
+                          {isLead && <span className="text-[8px] text-emerald-500 font-bold">L </span>}
                           <span className={isBoard ? 'font-bold text-amber-500' : ''}>
                             {isBoard ? `B${bl > 1 ? bl : ''}` : pr.bid}
                           </span>

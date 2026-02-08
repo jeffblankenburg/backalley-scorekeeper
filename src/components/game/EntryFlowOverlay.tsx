@@ -47,16 +47,29 @@ function buildBidOrder(playerIds: string[], dealerPlayerId: string): number[] {
   return order;
 }
 
+function buildTricksOrder(playerIds: string[], round: Round): number[] {
+  const dealerIdx = playerIds.indexOf(round.dealerPlayerId);
+  // Sort by effective bid descending; ties broken by bid order (left of dealer first)
+  const indexed = round.playerRounds.map((pr, pi) => {
+    const effectiveBid = (pr.boardLevel ?? 0) > 0 ? round.handSize : pr.bid;
+    // bidOrderPos: distance from dealer in clockwise direction (1-based, dealer = playerCount)
+    const bidOrderPos = ((pi - dealerIdx + playerIds.length) % playerIds.length) || playerIds.length;
+    return { pi, effectiveBid, bidOrderPos };
+  });
+  indexed.sort((a, b) => b.effectiveBid - a.effectiveBid || a.bidOrderPos - b.bidOrderPos);
+  return indexed.map((x) => x.pi);
+}
+
 function createInitialState(
   initialPhase: 'trump' | 'tricks',
   playerCount: number,
   round: Round,
-  bidOrder: number[],
+  tricksOrder: number[],
 ): FlowState {
   const rainbows = Object.fromEntries(round.playerRounds.map((pr) => [pr.playerId, false]));
 
   if (initialPhase === 'tricks') {
-    const bids = bidOrder.map((pi) => ({
+    const bids = tricksOrder.map((pi) => ({
       bid: round.playerRounds[pi].bid,
       boardLevel: round.playerRounds[pi].boardLevel,
     }));
@@ -139,11 +152,12 @@ export function EntryFlowOverlay({
   onClose,
 }: EntryFlowOverlayProps) {
   const bidOrder = buildBidOrder(playerIds, round.dealerPlayerId);
+  const tricksOrder = buildTricksOrder(playerIds, round);
   const playerCount = playerIds.length;
 
   const [state, dispatch] = useReducer(
     (s: FlowState, a: FlowAction) => flowReducer(s, a, playerCount, round.handSize),
-    createInitialState(initialPhase, playerCount, round, bidOrder),
+    createInitialState(initialPhase, playerCount, round, tricksOrder),
   );
 
   // Commit bids
@@ -159,7 +173,7 @@ export function EntryFlowOverlay({
 
   // Commit tricks (and rainbows)
   if (state.phase === 'commit_tricks') {
-    const tricks = bidOrder.map((pi, i) => ({
+    const tricks = tricksOrder.map((pi, i) => ({
       playerId: playerIds[pi],
       tricksTaken: state.tricks[i],
     }));
@@ -215,7 +229,7 @@ export function EntryFlowOverlay({
             rainbows={state.rainbows}
             onToggle={(pid) => dispatch({ type: 'TOGGLE_RAINBOW', playerId: pid })}
             onDone={() => {
-              const tricks = bidOrder.map((pi, i) => ({
+              const tricks = tricksOrder.map((pi, i) => ({
                 playerId: playerIds[pi],
                 tricksTaken: state.tricks[i],
               }));
@@ -243,7 +257,8 @@ export function EntryFlowOverlay({
 
   const maxBoardInRound = Math.max(0, ...state.bids.slice(0, state.playerStep).map((b) => b.boardLevel));
 
-  const currentPlayerGlobalIdx = bidOrder[state.playerStep];
+  const currentOrder = state.phase === 'tricks' ? tricksOrder : bidOrder;
+  const currentPlayerGlobalIdx = currentOrder[state.playerStep];
   const currentPlayer = players.find((p) => p.id === playerIds[currentPlayerGlobalIdx]);
   const currentPlayerName = currentPlayer?.name ?? '?';
   const isDealer = playerIds[currentPlayerGlobalIdx] === round.dealerPlayerId;
