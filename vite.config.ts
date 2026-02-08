@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/backalley.com/',
+  base: '/backalley-scorekeeper/',
   plugins: [
     react(),
     tailwindcss(),
@@ -19,8 +19,8 @@ export default defineConfig({
         background_color: '#0f172a',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/backalley.com/',
-        start_url: '/backalley.com/',
+        scope: '/backalley-scorekeeper/',
+        start_url: '/backalley-scorekeeper/',
         icons: [
           {
             src: 'icons/icon-192.png',
