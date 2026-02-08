@@ -30,11 +30,8 @@ interface EntryFlowOverlayProps {
   players: Player[];
   playerIds: string[];
   initialPhase: 'trump' | 'tricks';
-  onCommitBids: (suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[]) => void;
-  onCommitTricks: (
-    tricks: { playerId: string; tricksTaken: number }[],
-    rainbows: { playerId: string; rainbow: boolean }[],
-  ) => void;
+  onCommitBids: (suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[], rainbows: { playerId: string; rainbow: boolean }[]) => void;
+  onCommitTricks: (tricks: { playerId: string; tricksTaken: number }[]) => void;
   onClose: () => void;
 }
 
@@ -95,7 +92,8 @@ function flowReducer(state: FlowState, action: FlowAction, playerCount: number, 
       const newBids = [...state.bids];
       newBids[state.playerStep] = { bid: action.bid, boardLevel: action.boardLevel };
       if (state.playerStep + 1 >= playerCount) {
-        return { ...state, bids: newBids, phase: 'commit_bids' };
+        const isRainbow = handSize === RAINBOW_HAND_SIZE;
+        return { ...state, bids: newBids, phase: isRainbow ? 'rainbow' : 'commit_bids' };
       }
       return { ...state, bids: newBids, playerStep: state.playerStep + 1 };
     }
@@ -108,8 +106,7 @@ function flowReducer(state: FlowState, action: FlowAction, playerCount: number, 
         if (total !== handSize) {
           return { ...state, tricks: newTricks, phase: 'tricks_error' };
         }
-        const isRainbow = handSize === RAINBOW_HAND_SIZE;
-        return { ...state, tricks: newTricks, phase: isRainbow ? 'rainbow' : 'commit_tricks' };
+        return { ...state, tricks: newTricks, phase: 'commit_tricks' };
       }
       return { ...state, tricks: newTricks, playerStep: state.playerStep + 1 };
     }
@@ -132,7 +129,7 @@ function flowReducer(state: FlowState, action: FlowAction, playerCount: number, 
         return { ...state, phase: 'tricks', playerStep: playerCount - 1 };
       }
       if (state.phase === 'rainbow') {
-        return { ...state, phase: 'tricks', playerStep: playerCount - 1 };
+        return { ...state, phase: 'bids', playerStep: playerCount - 1 };
       }
       return state;
     }
@@ -160,28 +157,28 @@ export function EntryFlowOverlay({
     createInitialState(initialPhase, playerCount, round, tricksOrder),
   );
 
-  // Commit bids
+  // Commit bids (with rainbows if applicable)
   if (state.phase === 'commit_bids') {
     const bids = bidOrder.map((pi, i) => ({
       playerId: playerIds[pi],
       bid: state.bids[i].bid,
       boardLevel: state.bids[i].boardLevel,
     }));
-    onCommitBids(state.suit!, bids);
+    const rainbows = playerIds.map((pid) => ({
+      playerId: pid,
+      rainbow: state.rainbows[pid] ?? false,
+    }));
+    onCommitBids(state.suit!, bids, rainbows);
     return null;
   }
 
-  // Commit tricks (and rainbows)
+  // Commit tricks
   if (state.phase === 'commit_tricks') {
     const tricks = tricksOrder.map((pi, i) => ({
       playerId: playerIds[pi],
       tricksTaken: state.tricks[i],
     }));
-    const rainbows = playerIds.map((pid) => ({
-      playerId: pid,
-      rainbow: state.rainbows[pid] ?? false,
-    }));
-    onCommitTricks(tricks, rainbows);
+    onCommitTricks(tricks);
     return null;
   }
 
@@ -229,15 +226,16 @@ export function EntryFlowOverlay({
             rainbows={state.rainbows}
             onToggle={(pid) => dispatch({ type: 'TOGGLE_RAINBOW', playerId: pid })}
             onDone={() => {
-              const tricks = tricksOrder.map((pi, i) => ({
+              const bids = bidOrder.map((pi, i) => ({
                 playerId: playerIds[pi],
-                tricksTaken: state.tricks[i],
+                bid: state.bids[i].bid,
+                boardLevel: state.bids[i].boardLevel,
               }));
               const rainbows = playerIds.map((pid) => ({
                 playerId: pid,
                 rainbow: state.rainbows[pid] ?? false,
               }));
-              onCommitTricks(tricks, rainbows);
+              onCommitBids(state.suit!, bids, rainbows);
             }}
             onBack={() => dispatch({ type: 'BACK' })}
           />

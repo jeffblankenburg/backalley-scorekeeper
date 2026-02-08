@@ -7,6 +7,7 @@ import { EntryFlowOverlay } from '../components/game/EntryFlowOverlay.tsx';
 import { AnnounceScoresButton } from '../components/game/AnnounceScoresButton.tsx';
 import { GameCompleteModal } from '../components/game/GameCompleteModal.tsx';
 import type { Suit } from '../types/index.ts';
+import { playApplause } from '../lib/sounds.ts';
 
 export function GamePlayPage() {
   const { id } = useParams<{ id: string }>();
@@ -46,19 +47,21 @@ export function GamePlayPage() {
     setEntryFlow({ roundIndex, phase: 'trump' });
   }
 
-  function handleCommitBids(suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[]) {
-    if (!entryFlow) return;
+  function handleCommitBids(suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[], rainbows: { playerId: string; rainbow: boolean }[]) {
+    if (!entryFlow || !game) return;
+    const round = game.rounds[entryFlow.roundIndex];
+    const totalBids = bids.reduce((sum, b) => sum + (b.boardLevel > 0 ? round.handSize : b.bid), 0);
+    if (totalBids === round.handSize) {
+      playApplause();
+    }
     setBidsForRound(entryFlow.roundIndex, suit, bids);
+    setRainbowsForRound(entryFlow.roundIndex, rainbows);
     setEntryFlow(null);
   }
 
-  function handleCommitTricks(
-    tricks: { playerId: string; tricksTaken: number }[],
-    rainbows: { playerId: string; rainbow: boolean }[],
-  ) {
+  function handleCommitTricks(tricks: { playerId: string; tricksTaken: number }[]) {
     if (!entryFlow || !game) return;
     setTricksForRound(entryFlow.roundIndex, tricks);
-    setRainbowsForRound(entryFlow.roundIndex, rainbows);
     completeRound(entryFlow.roundIndex);
     setEntryFlow(null);
 
