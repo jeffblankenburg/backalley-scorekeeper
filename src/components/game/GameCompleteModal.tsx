@@ -5,9 +5,10 @@ interface GameCompleteModalProps {
   game: Game;
   players: Player[];
   onViewSummary: () => void;
+  onPlayAgain: () => void;
 }
 
-export function GameCompleteModal({ open, game, players, onViewSummary }: GameCompleteModalProps) {
+export function GameCompleteModal({ open, game, players, onViewSummary, onPlayAgain }: GameCompleteModalProps) {
   if (!open) return null;
 
   const lastRound = game.rounds[game.rounds.length - 1];
@@ -41,12 +42,20 @@ export function GameCompleteModal({ open, game, players, onViewSummary }: GameCo
             </div>
           ))}
         </div>
-        <button
-          onClick={onViewSummary}
-          className="w-full py-3 rounded-xl bg-blue-500 text-white font-bold transition-colors hover:bg-blue-600"
-        >
-          View Summary
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={onPlayAgain}
+            className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold transition-colors hover:bg-emerald-600"
+          >
+            Play Again
+          </button>
+          <button
+            onClick={onViewSummary}
+            className="w-full py-3 rounded-xl bg-blue-500 text-white font-bold transition-colors hover:bg-blue-600"
+          >
+            View Summary
+          </button>
+        </div>
       </div>
     </div>
   );

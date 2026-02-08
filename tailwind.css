@@ -2,6 +2,13 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+.suit-symbol {
+  paint-order: stroke fill;
+}
+.dark .suit-symbol {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
+}
+
 @theme {
   --color-slate-950: #0f172a;
   --color-slate-900: #1e293b;

@@ -1,11 +1,11 @@
 // Position names for auditory score announcements
 // These can be customized later
 export const POSITION_NAMES: Record<number, string> = {
-  1: 'First Place',
-  2: 'Second Place',
-  3: 'Third Place',
-  4: 'Fourth Place',
-  5: 'Fifth Place',
+  1: 'Team Captain',
+  2: 'Co-Captain',
+  3: 'Team Member',
+  4: 'Team Alternate',
+  5: 'Shitboy',
 };
 
 export interface StandingEntry {

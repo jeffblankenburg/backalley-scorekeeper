@@ -5,8 +5,9 @@ import { TrumpStep } from './entry/TrumpStep.tsx';
 import { BidStep } from './entry/BidStep.tsx';
 import { TricksStep } from './entry/TricksStep.tsx';
 import { RainbowStep } from './entry/RainbowStep.tsx';
+import { JoBoStep } from './entry/JoBoStep.tsx';
 
-type FlowPhase = 'trump' | 'bids' | 'tricks' | 'tricks_error' | 'rainbow' | 'commit_bids' | 'commit_tricks';
+type FlowPhase = 'trump' | 'bids' | 'tricks' | 'tricks_error' | 'rainbow' | 'jobo' | 'commit_bids' | 'commit_tricks';
 
 interface FlowState {
   phase: FlowPhase;
@@ -15,6 +16,7 @@ interface FlowState {
   bids: { bid: number; boardLevel: number }[];
   tricks: number[];
   rainbows: Record<string, boolean>;
+  jobos: Record<string, boolean>;
 }
 
 type FlowAction =
@@ -22,15 +24,17 @@ type FlowAction =
   | { type: 'SET_BID'; bid: number; boardLevel: number }
   | { type: 'SET_TRICKS'; tricks: number }
   | { type: 'TOGGLE_RAINBOW'; playerId: string }
-  | { type: 'BACK' }
-  | { type: 'GO_RAINBOW' };
+  | { type: 'TOGGLE_JOBO'; playerId: string }
+  | { type: 'DONE_RAINBOW' }
+  | { type: 'DONE_JOBO' }
+  | { type: 'BACK' };
 
 interface EntryFlowOverlayProps {
   round: Round;
   players: Player[];
   playerIds: string[];
   initialPhase: 'trump' | 'tricks';
-  onCommitBids: (suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[], rainbows: { playerId: string; rainbow: boolean }[]) => void;
+  onCommitBids: (suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[], rainbows: { playerId: string; rainbow: boolean }[], jobos: { playerId: string; jobo: boolean }[]) => void;
   onCommitTricks: (tricks: { playerId: string; tricksTaken: number }[]) => void;
   onClose: () => void;
 }
@@ -64,13 +68,14 @@ function createInitialState(
   tricksOrder: number[],
 ): FlowState {
   const rainbows = Object.fromEntries(round.playerRounds.map((pr) => [pr.playerId, false]));
+  const jobos = Object.fromEntries(round.playerRounds.map((pr) => [pr.playerId, false]));
 
   if (initialPhase === 'tricks') {
     const bids = tricksOrder.map((pi) => ({
       bid: round.playerRounds[pi].bid,
       boardLevel: round.playerRounds[pi].boardLevel,
     }));
-    return { phase: 'tricks', playerStep: 0, suit: round.trumpSuit, bids, tricks: Array(playerCount).fill(-1), rainbows };
+    return { phase: 'tricks', playerStep: 0, suit: round.trumpSuit, bids, tricks: Array(playerCount).fill(-1), rainbows, jobos };
   }
 
   return {
@@ -80,6 +85,7 @@ function createInitialState(
     bids: Array.from({ length: playerCount }, () => ({ bid: 0, boardLevel: 0 })),
     tricks: Array(playerCount).fill(-1),
     rainbows,
+    jobos,
   };
 }
 
@@ -114,8 +120,14 @@ function flowReducer(state: FlowState, action: FlowAction, playerCount: number, 
     case 'TOGGLE_RAINBOW':
       return { ...state, rainbows: { ...state.rainbows, [action.playerId]: !state.rainbows[action.playerId] } };
 
-    case 'GO_RAINBOW':
-      return { ...state, phase: 'rainbow' };
+    case 'TOGGLE_JOBO':
+      return { ...state, jobos: { ...state.jobos, [action.playerId]: !state.jobos[action.playerId] } };
+
+    case 'DONE_RAINBOW':
+      return { ...state, phase: 'jobo' };
+
+    case 'DONE_JOBO':
+      return { ...state, phase: 'commit_bids' };
 
     case 'BACK': {
       if (state.phase === 'bids') {
@@ -130,6 +142,9 @@ function flowReducer(state: FlowState, action: FlowAction, playerCount: number, 
       }
       if (state.phase === 'rainbow') {
         return { ...state, phase: 'bids', playerStep: playerCount - 1 };
+      }
+      if (state.phase === 'jobo') {
+        return { ...state, phase: 'rainbow' };
       }
       return state;
     }
@@ -157,7 +172,7 @@ export function EntryFlowOverlay({
     createInitialState(initialPhase, playerCount, round, tricksOrder),
   );
 
-  // Commit bids (with rainbows if applicable)
+  // Commit bids (with rainbows and jobos if applicable)
   if (state.phase === 'commit_bids') {
     const bids = bidOrder.map((pi, i) => ({
       playerId: playerIds[pi],
@@ -168,7 +183,11 @@ export function EntryFlowOverlay({
       playerId: pid,
       rainbow: state.rainbows[pid] ?? false,
     }));
-    onCommitBids(state.suit!, bids, rainbows);
+    const jobos = playerIds.map((pid) => ({
+      playerId: pid,
+      jobo: state.jobos[pid] ?? false,
+    }));
+    onCommitBids(state.suit!, bids, rainbows, jobos);
     return null;
   }
 
@@ -225,18 +244,36 @@ export function EntryFlowOverlay({
             players={playerList}
             rainbows={state.rainbows}
             onToggle={(pid) => dispatch({ type: 'TOGGLE_RAINBOW', playerId: pid })}
-            onDone={() => {
-              const bids = bidOrder.map((pi, i) => ({
-                playerId: playerIds[pi],
-                bid: state.bids[i].bid,
-                boardLevel: state.bids[i].boardLevel,
-              }));
-              const rainbows = playerIds.map((pid) => ({
-                playerId: pid,
-                rainbow: state.rainbows[pid] ?? false,
-              }));
-              onCommitBids(state.suit!, bids, rainbows);
-            }}
+            onDone={() => dispatch({ type: 'DONE_RAINBOW' })}
+            onBack={() => dispatch({ type: 'BACK' })}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // JoBo step
+  if (state.phase === 'jobo') {
+    const playerList = playerIds.map((pid) => ({
+      id: pid,
+      name: players.find((p) => p.id === pid)?.name ?? '?',
+    }));
+    return (
+      <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col">
+        <div className="flex items-center justify-between p-4">
+          <span className="text-sm text-slate-400">
+            Round {round.roundIndex + 1} &middot; {round.handSize} cards
+          </span>
+          <button type="button" onClick={onClose} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white text-2xl">
+            &times;
+          </button>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <JoBoStep
+            players={playerList}
+            jobos={state.jobos}
+            onToggle={(pid) => dispatch({ type: 'TOGGLE_JOBO', playerId: pid })}
+            onDone={() => dispatch({ type: 'DONE_JOBO' })}
             onBack={() => dispatch({ type: 'BACK' })}
           />
         </div>

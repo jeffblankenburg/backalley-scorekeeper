@@ -59,6 +59,7 @@ export function simulateGame(playerIds: string[], startingDealerIndex: number): 
         boardLevel,
         tricksTaken,
         rainbow,
+        jobo: false,
         score,
         cumulativeScore: 0,
       };

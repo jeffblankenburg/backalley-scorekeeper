@@ -22,6 +22,7 @@ function makeCompletedGame(
       boardLevel: 0,
       tricksTaken: 1,
       rainbow: false,
+      jobo: false,
       score: roundIndex === 19 ? finalScores[i] : 0,
       cumulativeScore: roundIndex === 19 ? finalScores[i] : 0,
     })),

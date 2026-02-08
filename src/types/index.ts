@@ -23,6 +23,7 @@ export interface PlayerRound {
   boardLevel: number; // 0 = normal, 1-5 = board tiers
   tricksTaken: number;
   rainbow: boolean;
+  jobo: boolean;
   score: number;
   cumulativeScore: number;
 }

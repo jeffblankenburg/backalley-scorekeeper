@@ -20,7 +20,7 @@ export function SuitPicker({ value, onChange }: SuitPickerProps) {
                 : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
         >
-          <span style={{ color: s.color }}>{s.symbol}</span>
+          <span className="suit-symbol" style={{ color: s.color }}>{s.symbol}</span>
           <span className="text-xs mt-1 text-slate-600 dark:text-slate-400">{s.label}</span>
         </button>
       ))}

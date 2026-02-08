@@ -62,7 +62,7 @@ export function TricksStep({
 
       <div className="w-full max-w-xs">
         <NumberPad
-          max={handSize}
+          max={remaining}
           selected={selected}
           onSelect={onTricks}
         />

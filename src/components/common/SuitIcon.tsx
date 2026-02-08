@@ -15,7 +15,7 @@ const sizeClasses = {
 export function SuitIcon({ suit, size = 'md' }: SuitIconProps) {
   const info = SUIT_MAP[suit];
   return (
-    <span className={`${sizeClasses[size]} leading-none`} style={{ color: info.color }}>
+    <span className={`${sizeClasses[size]} leading-none suit-symbol`} style={{ color: info.color }}>
       {info.symbol}
     </span>
   );

@@ -18,7 +18,9 @@ export function GamePlayPage() {
   const setBidsForRound = useGameStore((s) => s.setBidsForRound);
   const setTricksForRound = useGameStore((s) => s.setTricksForRound);
   const setRainbowsForRound = useGameStore((s) => s.setRainbowsForRound);
+  const setJobosForRound = useGameStore((s) => s.setJobosForRound);
   const completeRound = useGameStore((s) => s.completeRound);
+  const createGame = useGameStore((s) => s.createGame);
 
 
   const [showComplete, setShowComplete] = useState(false);
@@ -43,7 +45,7 @@ export function GamePlayPage() {
   }
 
 
-  function handleCommitBids(suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[], rainbows: { playerId: string; rainbow: boolean }[]) {
+  function handleCommitBids(suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[], rainbows: { playerId: string; rainbow: boolean }[], jobos: { playerId: string; jobo: boolean }[]) {
     if (!entryFlow || !game) return;
     const round = game.rounds[entryFlow.roundIndex];
     const totalBids = bids.reduce((sum, b) => sum + (b.boardLevel > 0 ? round.handSize : b.bid), 0);
@@ -52,6 +54,7 @@ export function GamePlayPage() {
     }
     setBidsForRound(entryFlow.roundIndex, suit, bids);
     setRainbowsForRound(entryFlow.roundIndex, rainbows);
+    setJobosForRound(entryFlow.roundIndex, jobos);
     setEntryFlow(null);
   }
 
@@ -94,6 +97,12 @@ export function GamePlayPage() {
         open={showComplete}
         game={game}
         players={players}
+        onPlayAgain={async () => {
+          setShowComplete(false);
+          const nextDealer = (game.startingDealerIndex + 1) % game.playerIds.length;
+          const newId = await createGame(game.playerIds, nextDealer);
+          navigate(`/game/${newId}`);
+        }}
         onViewSummary={() => {
           setShowComplete(false);
           navigate(`/game/${game.id}/summary`);

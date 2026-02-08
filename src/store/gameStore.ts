@@ -16,6 +16,7 @@ interface GameState {
   setBidsForRound: (roundIndex: number, suit: Suit, bids: { playerId: string; bid: number; boardLevel: number }[]) => void;
   setTricksForRound: (roundIndex: number, tricks: { playerId: string; tricksTaken: number }[]) => void;
   setRainbowsForRound: (roundIndex: number, rainbows: { playerId: string; rainbow: boolean }[]) => void;
+  setJobosForRound: (roundIndex: number, jobos: { playerId: string; jobo: boolean }[]) => void;
   completeRound: (roundIndex: number) => void;
   goToRound: (roundIndex: number) => void;
   abandonGame: () => Promise<void>;
@@ -34,6 +35,7 @@ function buildRounds(playerIds: string[], startingDealerIndex: number): Round[] 
       boardLevel: 0,
       tricksTaken: 0,
       rainbow: false,
+      jobo: false,
       score: 0,
       cumulativeScore: 0,
     })),
@@ -78,6 +80,12 @@ export const useGameStore = create<GameState>()((set, get) => ({
         // Migrate old games missing bidsEntered
         if (round.bidsEntered === undefined) {
           round.bidsEntered = round.isComplete || round.trumpSuit !== null;
+        }
+        // Migrate old games missing jobo
+        for (const pr of round.playerRounds) {
+          if (pr.jobo === undefined) {
+            pr.jobo = false;
+          }
         }
       }
       set({ game });
@@ -196,6 +204,20 @@ export const useGameStore = create<GameState>()((set, get) => ({
       }
     }
     recalcScores(game);
+    set({ game: { ...game } });
+    get()._save();
+  },
+
+  setJobosForRound: (roundIndex, jobos) => {
+    const game = get().game;
+    if (!game) return;
+    const round = game.rounds[roundIndex];
+    for (const j of jobos) {
+      const pr = round.playerRounds.find((p) => p.playerId === j.playerId);
+      if (pr) {
+        pr.jobo = j.jobo;
+      }
+    }
     set({ game: { ...game } });
     get()._save();
   },

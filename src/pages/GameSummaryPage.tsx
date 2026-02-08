@@ -1,13 +1,16 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useGameDetail } from '../hooks/useGameDetail.ts';
 import { usePlayers } from '../hooks/usePlayers.ts';
+import { useGameStore } from '../store/gameStore.ts';
 import { GameRoundTable } from '../components/history/GameRoundTable.tsx';
 import { AnnounceScoresButton } from '../components/game/AnnounceScoresButton.tsx';
 
 export function GameSummaryPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { game } = useGameDetail(id);
   const { players } = usePlayers();
+  const createGame = useGameStore((s) => s.createGame);
 
   if (!game) {
     return <p className="text-center py-12 text-slate-500">Loading...</p>;
@@ -50,6 +53,17 @@ export function GameSummaryPage() {
       <GameRoundTable game={game} players={players} />
 
       <AnnounceScoresButton game={game} players={players} currentRoundIndex={game.rounds.length - 1} />
+
+      <button
+        onClick={async () => {
+          const nextDealer = (game.startingDealerIndex + 1) % game.playerIds.length;
+          const newId = await createGame(game.playerIds, nextDealer);
+          navigate(`/game/${newId}`);
+        }}
+        className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold transition-colors hover:bg-emerald-600"
+      >
+        Play Again
+      </button>
 
       <Link
         to="/"

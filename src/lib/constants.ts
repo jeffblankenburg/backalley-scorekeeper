@@ -9,8 +9,8 @@ export const RAINBOW_BONUS = 8;
 
 export const SUITS: { suit: Suit; label: string; color: string; symbol: string }[] = [
   { suit: 'hearts', label: 'Hearts', color: '#ef4444', symbol: '♥' },
-  { suit: 'diamonds', label: 'Diamonds', color: '#3b82f6', symbol: '♦' },
-  { suit: 'clubs', label: 'Clubs', color: '#10b981', symbol: '♣' },
+  { suit: 'diamonds', label: 'Diamonds', color: '#ef4444', symbol: '♦' },
+  { suit: 'clubs', label: 'Clubs', color: '#1e1e1e', symbol: '♣' },
   { suit: 'spades', label: 'Spades', color: '#1e1e1e', symbol: '♠' },
 ];
 

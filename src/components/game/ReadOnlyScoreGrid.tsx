@@ -4,8 +4,8 @@ import { SUITS, RAINBOW_HAND_SIZE } from '../../lib/constants.ts';
 
 const SUIT_CLASS: Record<Suit, string> = {
   hearts: 'text-red-500',
-  diamonds: 'text-blue-500',
-  clubs: 'text-emerald-500',
+  diamonds: 'text-red-500',
+  clubs: 'text-slate-800 dark:text-slate-200',
   spades: 'text-slate-800 dark:text-slate-200',
 };
 
@@ -146,7 +146,7 @@ export function ReadOnlyScoreGrid({
                   {/* Trump */}
                   <td className="py-1 px-1 text-center border-r border-slate-200 dark:border-slate-700">
                     {round.trumpSuit && (
-                      <span className={['font-bold text-sm', SUIT_CLASS[round.trumpSuit]].join(' ')}>
+                      <span className={['font-bold text-sm suit-symbol', SUIT_CLASS[round.trumpSuit]].join(' ')}>
                         {SUITS.find((s) => s.suit === round.trumpSuit)?.symbol}
                       </span>
                     )}
@@ -251,7 +251,7 @@ export function ReadOnlyScoreGrid({
                 {/* Trump column */}
                 <td className="py-1 px-1 text-center border-r border-slate-200 dark:border-slate-700">
                   {round.trumpSuit ? (
-                    <span className={['font-bold text-sm', SUIT_CLASS[round.trumpSuit]].join(' ')}>
+                    <span className={['font-bold text-sm suit-symbol', SUIT_CLASS[round.trumpSuit]].join(' ')}>
                       {SUITS.find((s) => s.suit === round.trumpSuit)?.symbol}
                     </span>
                   ) : null}
