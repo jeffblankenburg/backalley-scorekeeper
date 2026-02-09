@@ -10,7 +10,7 @@ export function usePlayers() {
   const fetchProfiles = useCallback(async () => {
     const { data } = await supabase
       .from('profiles')
-      .select('id, display_name, email, created_at')
+      .select('id, display_name, first_name, last_name, email, is_admin, disabled, created_at')
       .order('display_name');
     if (data) {
       setProfiles(data);
@@ -22,10 +22,16 @@ export function usePlayers() {
     fetchProfiles();
   }, [fetchProfiles]);
 
-  async function updateDisplayName(userId: string, name: string) {
-    await supabase.from('profiles').update({ display_name: name.trim() }).eq('id', userId);
+  async function updateName(userId: string, firstName: string, lastName: string) {
+    const displayName = `${firstName.trim()} ${lastName.trim()}`;
+    await supabase.from('profiles').update({
+      display_name: displayName,
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+    }).eq('id', userId);
+    await supabase.auth.updateUser({ data: { display_name: displayName } });
     fetchProfiles();
   }
 
-  return { profiles, players, updateDisplayName, refetch: fetchProfiles };
+  return { profiles, players, updateName, refetch: fetchProfiles };
 }

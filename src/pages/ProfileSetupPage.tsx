@@ -6,7 +6,8 @@ import { supabase } from '../lib/supabase.ts';
 export function ProfileSetupPage() {
   const { user } = useAuthContext();
   const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,16 +18,19 @@ export function ProfileSetupPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const name = displayName.trim();
-    if (!name || !user) return;
+    const first = firstName.trim();
+    const last = lastName.trim();
+    if (!first || !last || !user) return;
 
     setSubmitting(true);
     setError(null);
 
+    const displayName = `${first} ${last}`;
+
     // Update the profiles table
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ display_name: name })
+      .update({ display_name: displayName, first_name: first, last_name: last })
       .eq('id', user.id);
 
     if (profileError) {
@@ -37,7 +41,7 @@ export function ProfileSetupPage() {
 
     // Mark profile as complete in user metadata
     const { error: authError } = await supabase.auth.updateUser({
-      data: { profile_complete: true, display_name: name },
+      data: { profile_complete: true, display_name: displayName },
     });
 
     if (authError) {
@@ -61,22 +65,37 @@ export function ProfileSetupPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="displayName" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
-              Display name
+            <label htmlFor="firstName" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+              First name
             </label>
             <input
-              id="displayName"
+              id="firstName"
               type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="What should we call you?"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
               required
               autoFocus
               maxLength={20}
               className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
             />
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+              Last name
+            </label>
+            <input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              required
+              maxLength={20}
+              className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
+            />
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-              This is the name other players will see.
+              Other players will see your initials on the score grid.
             </p>
           </div>
 
@@ -86,7 +105,7 @@ export function ProfileSetupPage() {
 
           <button
             type="submit"
-            disabled={submitting || !displayName.trim()}
+            disabled={submitting || !firstName.trim() || !lastName.trim()}
             className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-lg disabled:opacity-40 transition-colors hover:bg-emerald-600"
           >
             {submitting ? 'Saving...' : 'Let\'s Go'}

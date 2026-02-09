@@ -1,17 +1,39 @@
 import { NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase.ts';
+import { useAuthContext } from '../../context/AuthContext.tsx';
 
 const navItems = [
   { to: '/', label: 'Home', icon: '🏠' },
   { to: '/history', label: 'History', icon: '📋' },
   { to: '/stats', label: 'Stats', icon: '📊' },
-  { to: '/players', label: 'Players', icon: '👥' },
+  { to: '/players', label: 'Friends', icon: '👥' },
 ];
 
 export function BottomNav() {
+  const { user } = useAuthContext();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        setIsAdmin(data?.is_admin ?? false);
+      });
+  }, [user]);
+
+  const items = isAdmin
+    ? [...navItems, { to: '/admin', label: 'Admin', icon: '⚙️' }]
+    : navItems;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 safe-bottom">
       <div className="max-w-lg mx-auto flex justify-around">
-        {navItems.map((item) => (
+        {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

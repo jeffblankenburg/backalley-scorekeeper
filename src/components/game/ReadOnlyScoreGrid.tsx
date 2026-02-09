@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import type { Game, Player, Suit } from '../../types/index.ts';
+import { getInitials } from '../../types/index.ts';
 import { SUITS, RAINBOW_HAND_SIZE } from '../../lib/constants.ts';
 
 const SUIT_CLASS: Record<Suit, string> = {
@@ -13,14 +14,12 @@ interface ReadOnlyScoreGridProps {
   game: Game;
   players: Player[];
   onEnterBids: (roundIndex: number) => void;
-  onEnterTricks: (roundIndex: number) => void;
 }
 
 export function ReadOnlyScoreGrid({
   game,
   players,
   onEnterBids,
-  onEnterTricks,
 }: ReadOnlyScoreGridProps) {
   const currentRowRef = useRef<HTMLTableRowElement>(null);
 
@@ -43,12 +42,13 @@ export function ReadOnlyScoreGrid({
             </th>
             {game.playerIds.map((pid) => {
               const player = players.find((p) => p.id === pid);
+              const gamePlayers = game.playerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean) as Player[];
               return (
                 <th
                   key={pid}
-                  className="py-2 px-1 text-center text-[11px] font-bold text-slate-600 dark:text-slate-300 min-w-[68px] border-r border-slate-200 dark:border-slate-700"
+                  className="py-2 px-1 text-center text-[11px] font-bold text-slate-600 dark:text-slate-300 min-w-[52px] border-r border-slate-200 dark:border-slate-700"
                 >
-                  {player?.name ?? '?'}
+                  {player ? getInitials(player, gamePlayers) : '?'}
                 </th>
               );
             })}
@@ -156,7 +156,6 @@ export function ReadOnlyScoreGrid({
                     <span className={roundBids === round.handSize ? 'text-amber-500 font-bold' : ''}>
                       {roundBids}
                     </span>
-                    <span className="text-slate-300 dark:text-slate-600">/{round.handSize}</span>
                   </td>
                 </tr>
               );
@@ -260,12 +259,9 @@ export function ReadOnlyScoreGrid({
                 {/* Bid total */}
                 <td className="py-1 px-1 text-center text-slate-500 dark:text-slate-400">
                   {(isComplete || isCurrent) && (
-                    <>
-                      <span className={roundBids === round.handSize ? 'text-amber-500 font-bold' : ''}>
-                        {roundBids}
-                      </span>
-                      <span className="text-slate-300 dark:text-slate-600">/{round.handSize}</span>
-                    </>
+                    <span className={roundBids === round.handSize ? 'text-amber-500 font-bold' : ''}>
+                      {roundBids}
+                    </span>
                   )}
                 </td>
               </tr>
@@ -313,24 +309,6 @@ export function ReadOnlyScoreGrid({
         </tfoot>
       </table>
 
-      {/* Enter Tricks button below grid when bids are entered */}
-      {(() => {
-        const current = game.rounds[game.currentRoundIndex];
-        if (current && current.bidsEntered && !current.isComplete) {
-          return (
-            <div className="p-3">
-              <button
-                type="button"
-                onClick={() => onEnterTricks(game.currentRoundIndex)}
-                className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-lg transition-all active:scale-[0.98]"
-              >
-                Enter Tricks
-              </button>
-            </div>
-          );
-        }
-        return null;
-      })()}
     </div>
   );
 }

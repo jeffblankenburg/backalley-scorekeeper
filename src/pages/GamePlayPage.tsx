@@ -4,6 +4,7 @@ import { useGameStore } from '../store/gameStore.ts';
 import { usePlayers } from '../hooks/usePlayers.ts';
 import { useAuthContext } from '../context/AuthContext.tsx';
 import { ReadOnlyScoreGrid } from '../components/game/ReadOnlyScoreGrid.tsx';
+import { RoundInfoPanel } from '../components/game/RoundInfoPanel.tsx';
 import { EntryFlowOverlay } from '../components/game/EntryFlowOverlay.tsx';
 import { AnnounceScoresButton } from '../components/game/AnnounceScoresButton.tsx';
 import { GameCompleteModal } from '../components/game/GameCompleteModal.tsx';
@@ -78,10 +79,11 @@ export function GamePlayPage() {
         game={game}
         players={players}
         onEnterBids={handleEnterBids}
-        onEnterTricks={handleEnterTricks}
       />
 
       <AnnounceScoresButton game={game} players={players} currentRoundIndex={game.currentRoundIndex} />
+
+      <RoundInfoPanel game={game} players={players} onEnterTricks={handleEnterTricks} />
 
       {entryFlow && (
         <EntryFlowOverlay

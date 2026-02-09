@@ -9,15 +9,16 @@ interface AnnounceScoresButtonProps {
 
 export function AnnounceScoresButton({ game, players, currentRoundIndex }: AnnounceScoresButtonProps) {
   function handleAnnounce() {
-    // Find the latest round with scores to announce
-    const round = game.rounds[currentRoundIndex];
+    // Find the latest completed round (current round may not have scores yet)
+    const round = [...game.rounds].reverse().find((r) => r.isComplete)
+      ?? game.rounds[currentRoundIndex];
     if (!round) return;
 
     const standings = game.playerIds
       .map((pid) => {
         const pr = round.playerRounds.find((p) => p.playerId === pid);
         const player = players.find((p) => p.id === pid);
-        return { name: player?.name ?? 'Unknown', score: pr?.cumulativeScore ?? 0 };
+        return { name: player?.firstName || (player?.name ?? 'Unknown'), score: pr?.cumulativeScore ?? 0 };
       })
       .sort((a, b) => b.score - a.score)
       .map((s, i) => ({ ...s, position: i + 1 }));

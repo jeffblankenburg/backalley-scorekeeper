@@ -4,7 +4,8 @@ import type { Game, Player } from '../types/index.ts';
 import { ROUND_HAND_SIZES } from './constants.ts';
 
 function makePlayer(id: string, name: string): Player {
-  return { id, name, createdAt: 0 };
+  const parts = name.split(' ');
+  return { id, name, firstName: parts[0] ?? '', lastName: parts.slice(1).join(' ') ?? '', createdAt: 0 };
 }
 
 function makeCompletedGame(

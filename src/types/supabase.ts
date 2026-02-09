@@ -5,20 +5,32 @@ export interface Database {
         Row: {
           id: string;
           display_name: string;
+          first_name: string;
+          last_name: string;
           email: string | null;
+          is_admin: boolean;
+          disabled: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
-          display_name: string;
+          display_name?: string;
+          first_name?: string;
+          last_name?: string;
           email?: string | null;
+          is_admin?: boolean;
+          disabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           display_name?: string;
+          first_name?: string;
+          last_name?: string;
           email?: string | null;
+          is_admin?: boolean;
+          disabled?: boolean;
           updated_at?: string;
         };
         Relationships: [];
@@ -141,6 +153,25 @@ export interface Database {
           score?: number;
           cumulative_score?: number;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      friends: {
+        Row: {
+          id: string;
+          user_id: string;
+          friend_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          friend_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          friend_id?: string;
         };
         Relationships: [];
       };

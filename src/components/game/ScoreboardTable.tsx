@@ -1,4 +1,5 @@
 import type { Game, Player } from '../../types/index.ts';
+import { getInitials } from '../../types/index.ts';
 import { ScoreBadge } from '../common/ScoreBadge.tsx';
 
 interface ScoreboardTableProps {
@@ -35,7 +36,7 @@ export function ScoreboardTable({ game, players, currentRoundIndex }: Scoreboard
                 key={pid}
                 className="border-t border-slate-100 dark:border-slate-800"
               >
-                <td className="p-2 font-medium truncate max-w-[120px]">{player?.name}</td>
+                <td className="p-2 font-medium truncate max-w-[120px]">{player ? getInitials(player, players) : ''}</td>
                 <td className="p-2 text-right">
                   <ScoreBadge score={currentPr?.score ?? 0} size="sm" />
                 </td>

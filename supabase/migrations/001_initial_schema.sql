@@ -1,0 +1,6 @@
+-- 001: Initial schema
+-- This is the base schema. If starting fresh, run supabase-schema.sql instead.
+-- This file exists for historical reference.
+--
+-- Tables created: profiles, games, game_players, rounds, player_rounds
+-- See supabase-schema.sql for the full CREATE TABLE statements.
