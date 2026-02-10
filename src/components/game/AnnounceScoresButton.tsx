@@ -1,5 +1,6 @@
 import type { Game, Player } from '../../types/index.ts';
 import { announceScores } from '../../lib/standings.ts';
+import { usePreferencesStore } from '../../store/preferencesStore.ts';
 
 interface AnnounceScoresButtonProps {
   game: Game;
@@ -8,6 +9,8 @@ interface AnnounceScoresButtonProps {
 }
 
 export function AnnounceScoresButton({ game, players, currentRoundIndex }: AnnounceScoresButtonProps) {
+  const standingsStyle = usePreferencesStore((s) => s.standingsStyle);
+
   function handleAnnounce() {
     // Find the latest completed round (current round may not have scores yet)
     const round = [...game.rounds].reverse().find((r) => r.isComplete)
@@ -23,7 +26,7 @@ export function AnnounceScoresButton({ game, players, currentRoundIndex }: Annou
       .sort((a, b) => b.score - a.score)
       .map((s, i) => ({ ...s, position: i + 1 }));
 
-    announceScores(standings);
+    announceScores(standings, standingsStyle);
   }
 
   return (

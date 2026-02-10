@@ -8,6 +8,7 @@ const navItems = [
   { to: '/history', label: 'History', icon: '📋' },
   { to: '/stats', label: 'Stats', icon: '📊' },
   { to: '/players', label: 'Friends', icon: '👥' },
+  { to: '/profile', label: 'Profile', icon: '👤' },
 ];
 
 export function BottomNav() {

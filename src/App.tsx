@@ -11,6 +11,7 @@ import { HistoryPage } from './pages/HistoryPage.tsx';
 import { GameDetailPage } from './pages/GameDetailPage.tsx';
 import { StatsPage } from './pages/StatsPage.tsx';
 import { PlayersPage } from './pages/PlayersPage.tsx';
+import { ProfilePage } from './pages/ProfilePage.tsx';
 import { AdminPage } from './pages/AdminPage.tsx';
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/history/:id" element={<GameDetailPage />} />
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/players" element={<PlayersPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminPage />} />
           </Route>
         </Route>
