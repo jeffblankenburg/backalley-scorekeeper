@@ -10,4 +10,4 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-export const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+export const siteUrl = import.meta.env.VITE_SITE_URL as string;
