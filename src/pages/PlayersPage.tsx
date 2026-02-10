@@ -29,6 +29,8 @@ export function PlayersPage() {
     setEditingName(false);
   }
 
+  const [friendsOpen, setFriendsOpen] = useState(false);
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold">Friends</h2>
@@ -91,23 +93,36 @@ export function PlayersPage() {
         </div>
       )}
 
-      {/* Friends list */}
-      <div>
-        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-          Your Friends ({friends.length})
-        </h3>
-        {loading ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
-        ) : (
-          <FriendsList friends={friends} onRemove={removeFriend} />
-        )}
-      </div>
-
       {/* Search for existing users */}
       <PlayerSearch onSearch={searchProfiles} onAdd={addFriend} />
 
       {/* Invite by email */}
       <InviteForm onInvite={inviteByEmail} />
+
+      {/* Friends list (collapsible) */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setFriendsOpen(!friendsOpen)}
+          className="flex items-center gap-2 w-full text-left"
+        >
+          <span className={['text-xs text-slate-400 transition-transform', friendsOpen ? 'rotate-90' : ''].join(' ')}>
+            &#9654;
+          </span>
+          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">
+            Your Friends ({friends.length})
+          </h3>
+        </button>
+        {friendsOpen && (
+          <div className="mt-2">
+            {loading ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
+            ) : (
+              <FriendsList friends={friends} onRemove={removeFriend} />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

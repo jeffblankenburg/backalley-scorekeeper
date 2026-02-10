@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFriends } from '../../hooks/useFriends.ts';
+import { usePlayers } from '../../hooks/usePlayers.ts';
 import { useGameStore } from '../../store/gameStore.ts';
 import { useAuthContext } from '../../context/AuthContext.tsx';
 import { profileToPlayer } from '../../types/index.ts';
@@ -10,6 +11,7 @@ import { PLAYER_COUNT } from '../../lib/constants.ts';
 
 export function GameSetupForm() {
   const { friends, loading, createPlayer } = useFriends();
+  const { profiles } = usePlayers();
   const createGame = useGameStore((s) => s.createGame);
   const { user } = useAuthContext();
   const navigate = useNavigate();
@@ -22,9 +24,13 @@ export function GameSetupForm() {
   if (user) {
     const currentUserProfile = friends.find((f) => f.id === user.id);
     if (!currentUserProfile) {
-      const fallbackName = user.user_metadata?.display_name ?? user.email?.split('@')[0] ?? 'You';
-      const parts = fallbackName.split(' ');
-      players.unshift({ id: user.id, name: fallbackName, firstName: parts[0] ?? '', lastName: parts.slice(1).join(' ') ?? '', createdAt: Date.now() });
+      const profile = profiles.find((p) => p.id === user.id);
+      if (profile) {
+        players.unshift(profileToPlayer(profile));
+      } else {
+        const fallbackName = user.email?.split('@')[0] ?? 'You';
+        players.unshift({ id: user.id, name: fallbackName, firstName: fallbackName, lastName: '', createdAt: Date.now() });
+      }
     }
   }
 

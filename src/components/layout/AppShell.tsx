@@ -2,13 +2,16 @@ import { Outlet } from 'react-router-dom';
 import { BottomNav } from './BottomNav.tsx';
 import { useThemeStore } from '../../store/themeStore.ts';
 import { useAuthContext } from '../../context/AuthContext.tsx';
+import { usePlayers } from '../../hooks/usePlayers.ts';
 
 export function AppShell() {
   const dark = useThemeStore((s) => s.dark);
   const toggle = useThemeStore((s) => s.toggle);
   const { user, signOut } = useAuthContext();
+  const { profiles } = usePlayers();
 
-  const displayName = user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? '';
+  const currentProfile = profiles.find((p) => p.id === user?.id);
+  const displayName = currentProfile?.display_name ?? user?.email?.split('@')[0] ?? '';
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 pb-20">
